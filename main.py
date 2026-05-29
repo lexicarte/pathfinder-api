@@ -32,6 +32,11 @@ class PathfinderIntake(BaseModel):
     constraints: str
 
 
+class FollowUpResponse(BaseModel):
+    needsFollowUp: bool
+    questions: list[str]
+
+
 REPORT_SCHEMA = {
     "name": "pathfinder_report",
     "schema": {
@@ -113,6 +118,95 @@ REPORT_SCHEMA = {
         ],
     },
 }
+
+
+@app.post("/check-follow-ups")
+def check_follow_ups(intake: PathfinderIntake):
+    prompt = f"""
+You are an expert career coach conducting a discovery conversation.
+
+Review the user's answers.
+
+Determine whether you have enough information to confidently recommend career paths.
+
+Look for:
+
+- vague answers
+- contradictory answers
+- missing motivations
+- unclear strengths
+- unclear dislikes
+- unclear work preferences
+
+If more information would materially improve the career recommendations:
+
+Return 2 to 4 follow-up questions.
+
+The questions should:
+- feel conversational
+- be specific
+- uncover missing information
+- not repeat questions already asked
+
+If the information is already sufficient:
+
+Return no questions.
+
+User responses:
+
+Current role:
+{intake.currentRole}
+
+Natural strengths:
+{intake.naturalStrengths}
+
+Preferred work style:
+{intake.workPreference}
+
+Draining work:
+{intake.drainsEnergy}
+
+Energizing work:
+{intake.energizingWork}
+
+Work to avoid:
+{intake.workToAvoid}
+
+Education:
+{intake.education}
+
+Constraints:
+{intake.constraints}
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "system",
+                "content": """
+Return JSON only.
+
+{
+  "needsFollowUp": true,
+  "questions": [
+    "question",
+    "question"
+  ]
+}
+"""
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+    )
+
+    return json.loads(
+        response.choices[0].message.content
+    )
 
 
 @app.post("/generate-report")
