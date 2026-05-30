@@ -30,6 +30,7 @@ class PathfinderIntake(BaseModel):
     workToAvoid: str
     education: str
     constraints: str
+    followUpResponses: str = ""
 
 
 class FollowUpResponse(BaseModel):
@@ -138,9 +139,29 @@ Look for:
 - unclear dislikes
 - unclear work preferences
 
+Be skeptical.
+
+If any answer is generic, short, abstract, or could apply to almost anyone, ask a follow-up.
+
+Generic answers include:
+- "helping people"
+- "working with people"
+- "stress"
+- "bad jobs"
+- "depends"
+- "communication"
+- "problem solving"
+- "teamwork"
+- "leadership"
+- "flexible"
+
+When in doubt, ask follow-up questions.
+
+Only return needsFollowUp false if the user's answers include specific examples, clear preferences, and enough context to distinguish between multiple career paths.
+
 If more information would materially improve the career recommendations:
 
-Return 2 to 4 follow-up questions.
+Return 2 to 5 follow-up questions.
 
 The questions should:
 - feel conversational
@@ -231,6 +252,21 @@ Do not recommend paths that obviously conflict with what drains the user.
 Do not assume the user wants to go back to school unless necessary.
 Prefer realistic bridge roles over dramatic career pivots.
 
+Do not present recommendations as certain conclusions.
+
+If the user's answers are vague, limited, or incomplete:
+- avoid highly specific career paths unless clearly supported
+- identify what information is missing
+- let the user know that their career coach will walk them through each step
+
+Prefer realistic categories and bridge roles over overly specific titles.
+
+Bad example:
+"UX Researcher is a strong fit."
+
+Better example:
+"Research-adjacent roles may be worth exploring if the user enjoys interviewing people, analyzing patterns, and translating insights into recommendations. More information is needed before treating this as a primary target."
+
 User intake:
 Current role / industry: {intake.currentRole}
 Natural strengths: {intake.naturalStrengths}
@@ -240,8 +276,9 @@ Energizing work: {intake.energizingWork}
 Work to avoid: {intake.workToAvoid}
 Education / certifications: {intake.education}
 Constraints: {intake.constraints}
+Follow-up clarification responses: {intake.followUpResponses}
 
-Return 3 to 5 career recommendations.
+Return 2 to 5 career recommendations. If the input is thin, keep them broad and exploratory.
 """
 
     response = client.responses.create(
