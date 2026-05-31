@@ -6,11 +6,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from pydantic import BaseModel
+import requests
+from typing import List
 
 load_dotenv()
 
 app = FastAPI()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID")
+ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY")
+
+if not os.getenv("ADZUNA_APP_ID"):
+    raise Exception("Missing ADZUNA_APP_ID")
+
+if not os.getenv("ADZUNA_APP_KEY"):
+    raise Exception("Missing ADZUNA_APP_KEY")
 
 app.add_middleware(
     CORSMiddleware,
@@ -36,6 +46,40 @@ class PathfinderIntake(BaseModel):
 class FollowUpResponse(BaseModel):
     needsFollowUp: bool
     questions: list[str]
+
+
+class JobSearchRequest(BaseModel):
+    location: str
+    titles: List[str]
+
+
+class JobOpportunity(BaseModel):
+    title: str
+    company: str
+    location: str
+    salary: str
+    description: str
+    url: str
+
+
+class JobSearchResponse(BaseModel):
+    roles: List[JobOpportunity]
+
+
+def _format_salary(job: dict) -> str:
+    salary_min = job.get("salary_min")
+    salary_max = job.get("salary_max")
+
+    if salary_min and salary_max:
+        return f"${salary_min:,.0f} - ${salary_max:,.0f}"
+
+    if salary_min:
+        return f"From ${salary_min:,.0f}"
+
+    if salary_max:
+        return f"Up to ${salary_max:,.0f}"
+
+    return "Not listed"
 
 
 REPORT_SCHEMA = {
@@ -295,3 +339,63 @@ Return 2 to 5 career recommendations. If the input is thin, keep them broad and 
     )
 
     return json.loads(response.output_text)
+
+
+@app.post("/search-jobs")
+def search_jobs(request: JobSearchRequest):
+    app_id = os.getenv("ADZUNA_APP_ID")
+    app_key = os.getenv("ADZUNA_APP_KEY")
+
+    if not app_id or not app_key:
+        raise Exception("Missing Adzuna credentials")
+
+    collected_jobs = []
+    seen_urls = set()
+
+    for title in request.titles[:6]:
+        response = requests.get(
+            "https://api.adzuna.com/v1/api/jobs/us/search/1",
+            params={
+                "app_id": app_id,
+                "app_key": app_key,
+                "results_per_page": 5,
+                "what": title,
+                "where": request.location,
+                "sort_by": "date",
+                "content-type": "application/json",
+            },
+            timeout=15,
+        )
+
+        response.raise_for_status()
+        data = response.json()
+
+        for job in data.get("results", []):
+            url = job.get("redirect_url", "")
+
+            if not url or url in seen_urls:
+                continue
+
+            seen_urls.add(url)
+
+            company = job.get("company", {}).get("display_name", "Not listed")
+            location = job.get("location", {}).get("display_name", request.location)
+
+            collected_jobs.append(
+                {
+                    "title": job.get("title", ""),
+                    "company": company,
+                    "location": location,
+                    "salary": _format_salary(job),
+                    "description": job.get("description", ""),
+                    "url": url,
+                }
+            )
+
+            if len(collected_jobs) >= 10:
+                break
+
+        if len(collected_jobs) >= 10:
+            break
+
+    return {"roles": collected_jobs}
