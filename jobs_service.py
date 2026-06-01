@@ -2,6 +2,7 @@ import requests
 
 from config import ADZUNA_APP_ID, ADZUNA_APP_KEY
 from models import JobSearchRequest
+from openai_service import score_jobs_for_fit
 
 
 def format_salary(job: dict) -> str:
@@ -100,4 +101,51 @@ def search_jobs(request: JobSearchRequest) -> dict:
         if len(collected_jobs) >= 10:
             break
 
-    return {"roles": collected_jobs}
+    jobs_to_score = collected_jobs[:10]
+
+    scored_response = score_jobs_for_fit(
+        request.intake,
+        jobs_to_score,
+    )
+
+    ranked_jobs = apply_fit_scores(
+        jobs_to_score,
+        scored_response,
+    )
+
+    return {
+        "roles": [
+                     job for job in ranked_jobs
+                     if job.get("fitScore", 0) >= 5
+                 ][:8]
+    }
+
+
+def apply_fit_scores(
+    jobs: list[dict],
+    scored_response: dict,
+) -> list[dict]:
+    scores_by_url = {
+        item.get("url"): item
+        for item in scored_response.get("scoredJobs", [])
+    }
+
+    scored_jobs = []
+
+    for job in jobs:
+        score = scores_by_url.get(job.get("url"))
+
+        if not score:
+            continue
+
+        job["fitScore"] = int(score.get("fitScore", 0))
+        job["fitReason"] = score.get("fitReason", "")
+
+        scored_jobs.append(job)
+
+    scored_jobs.sort(
+        key=lambda item: item.get("fitScore", 0),
+        reverse=True,
+    )
+
+    return scored_jobs

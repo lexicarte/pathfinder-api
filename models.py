@@ -17,6 +17,7 @@ class PathfinderIntake(BaseModel):
 class JobSearchRequest(BaseModel):
     location: str
     titles: List[str]
+    intake: PathfinderIntake
 
 
 class JobOpportunity(BaseModel):
@@ -26,3 +27,5 @@ class JobOpportunity(BaseModel):
     salary: str
     description: str
     url: str
+    fitScore: int = 0
+    fitReason: str = ""

@@ -115,3 +115,77 @@ Follow-up clarification responses: {intake.followUpResponses}
 
 Return 2 to 5 career recommendations. If the input is thin, keep them broad and exploratory.
 """
+
+
+def build_candidate_summary(intake: PathfinderIntake) -> str:
+    return f"""
+Current role / industry:
+{intake.currentRole}
+
+Natural strengths:
+{intake.naturalStrengths}
+
+Preferred work style:
+{intake.workPreference}
+
+Draining work:
+{intake.drainsEnergy}
+
+Energizing work:
+{intake.energizingWork}
+
+Work to avoid:
+{intake.workToAvoid}
+
+Education / certifications:
+{intake.education}
+
+Constraints:
+{intake.constraints}
+
+Follow-up responses:
+{intake.followUpResponses}
+"""
+
+
+def build_job_relevance_prompt(
+        intake: PathfinderIntake,
+        jobs: list[dict],
+) -> str:
+    return f"""
+You are evaluating real job openings for a career-change candidate.
+
+Candidate context:
+{build_candidate_summary(intake)}
+
+Jobs to evaluate:
+{jobs}
+
+Score each job from 1 to 10 based on:
+- alignment with the candidate's transferable skills
+- realistic accessibility as a bridge role
+- whether it avoids known energy drains
+- whether it matches the likely career direction
+- whether the role seems too advanced, specialized, credential-heavy, or unrelated
+
+Return JSON only:
+
+{{
+  "scoredJobs": [
+    {{
+      "url": "original job url",
+      "fitScore": 1,
+      "fitReason": "brief explanation"
+    }}
+  ]
+}}
+
+Rules:
+- Do not invent jobs.
+- Only score jobs from the provided list.
+- Match using the original job URL.
+- Be strict.
+- If a job is unrelated, score it 1 to 3.
+- If a job requires credentials the user does not appear to have, score it low.
+- Keep fitReason under 30 words.
+"""
