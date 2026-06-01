@@ -29,3 +29,9 @@ class JobOpportunity(BaseModel):
     url: str
     fitScore: int = 0
     fitReason: str = ""
+
+
+class JobSearchResponse(BaseModel):
+    strongMatches: List[JobOpportunity]
+    exploratoryMatches: List[JobOpportunity]
+    message: str
