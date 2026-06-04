@@ -45,7 +45,12 @@ The questions should:
 - uncover missing information
 - not repeat questions already asked
 
+If the resume provides enough detail about current or recent experience, do not ask the user to restate their job history. Focus follow-up questions on motivations, preferences, energy drains, and unclear contradictions.
+
 User responses:
+
+Resume text, if provided:
+{intake.resumeText}
 
 Current role:
 {intake.currentRole}
@@ -102,7 +107,15 @@ If the user's answers are vague, limited, or incomplete:
 
 Prefer realistic categories and bridge roles over overly specific titles.
 
+If resume text is provided:
+- use it to infer current/recent experience
+- pull out transferable skills from past roles
+- compare resume evidence against the user's self-assessment
+- do not ask the user to repeat information that is already clear from the resume
+- still prioritize the user's stated energizers, drains, and preferences over resume history alone
+
 User intake:
+Resume text, if provided: {intake.resumeText}
 Current role / industry: {intake.currentRole}
 Natural strengths: {intake.naturalStrengths}
 Preferred work style: {intake.workPreference}

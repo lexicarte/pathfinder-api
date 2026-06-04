@@ -2,7 +2,15 @@ from typing import List
 from pydantic import BaseModel
 
 
+class ClientInfo(BaseModel):
+    firstName: str
+    lastName: str
+    email: str
+    phone: str
+
+
 class PathfinderIntake(BaseModel):
+    clientInfo: ClientInfo
     currentRole: str
     naturalStrengths: str
     workPreference: str
@@ -12,6 +20,7 @@ class PathfinderIntake(BaseModel):
     education: str
     constraints: str
     followUpResponses: str = ""
+    resumeText: str = ""
 
 
 class JobSearchRequest(BaseModel):
