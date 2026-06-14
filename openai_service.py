@@ -10,6 +10,13 @@ from prompts import (
 )
 from schemas import REPORT_SCHEMA
 
+from prompts import (
+    build_follow_up_prompt,
+    build_report_prompt,
+    build_job_relevance_prompt,
+    build_resume_parse_prompt,
+)
+
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 
@@ -88,6 +95,30 @@ def score_jobs_for_fit(
                     intake,
                     compact_jobs,
                 ),
+            }
+        ],
+    )
+
+    return json.loads(response.choices[0].message.content)
+
+
+def parse_resume(resume_text: str) -> dict:
+    if not resume_text.strip():
+        return {
+            "firstName": "",
+            "lastName": "",
+            "email": "",
+            "phone": "",
+            "educationLevel": "",
+        }
+
+    response = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "user",
+                "content": build_resume_parse_prompt(resume_text),
             }
         ],
     )

@@ -202,3 +202,39 @@ Rules:
 - If a job requires credentials the user does not appear to have, score it low.
 - Keep fitReason under 30 words.
 """
+
+
+def build_resume_parse_prompt(resume_text: str) -> str:
+    return f"""
+Extract basic candidate information from this resume.
+
+Return JSON only.
+
+Required shape:
+
+{{
+  "firstName": "",
+  "lastName": "",
+  "email": "",
+  "phone": "",
+  "educationLevel": ""
+}}
+
+Education level must be one of:
+- High School or GED
+- Trade School / Certification
+- Some College
+- Associate Degree
+- Bachelor's Degree
+- Master's Degree or Higher
+
+Rules:
+- If a field is unknown, return an empty string.
+- Do not guess contact information.
+- For name, use the most likely candidate name at the top of the resume.
+- For educationLevel, choose the highest completed level clearly supported by the resume.
+- Do not infer a degree from coursework alone.
+
+Resume text:
+{resume_text}
+"""

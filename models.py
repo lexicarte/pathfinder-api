@@ -44,3 +44,15 @@ class JobSearchResponse(BaseModel):
     strongMatches: List[JobOpportunity]
     exploratoryMatches: List[JobOpportunity]
     message: str
+
+
+class ResumeParseRequest(BaseModel):
+    resumeText: str
+
+
+class ParsedResume(BaseModel):
+    firstName: str = ""
+    lastName: str = ""
+    email: str = ""
+    phone: str = ""
+    educationLevel: str = ""
