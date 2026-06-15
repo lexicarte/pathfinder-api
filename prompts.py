@@ -180,13 +180,14 @@ Return JSON only.
 
 Required shape:
 
-{{
+{
   "firstName": "",
   "lastName": "",
   "email": "",
   "phone": "",
-  "educationLevel": ""
-}}
+  "educationLevel": "",
+  "location": ""
+}
 
 Education level must be one of:
 - High School or GED
@@ -202,6 +203,7 @@ Rules:
 - For name, use the most likely candidate name at the top of the resume.
 - For educationLevel, choose the highest completed level clearly supported by the resume.
 - Do not infer a degree from coursework alone.
+- If a city/state is clearly shown near the candidate name, contact information, or most recent experience, return it as location.
 
 Resume text:
 {resume_text}

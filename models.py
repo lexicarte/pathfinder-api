@@ -50,3 +50,4 @@ class ParsedResume(BaseModel):
     email: str = ""
     phone: str = ""
     educationLevel: str = ""
+    location: str = ""
