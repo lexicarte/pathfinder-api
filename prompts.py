@@ -180,14 +180,14 @@ Return JSON only.
 
 Required shape:
 
-{
+{{
   "firstName": "",
   "lastName": "",
   "email": "",
   "phone": "",
   "educationLevel": "",
   "location": ""
-}
+}}
 
 Education level must be one of:
 - High School or GED
