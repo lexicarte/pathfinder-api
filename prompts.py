@@ -1,6 +1,20 @@
 from models import PathfinderIntake
 
 
+def format_answers(answers: dict) -> str:
+    lines = []
+
+    for key, value in answers.items():
+        if isinstance(value, list):
+            formatted_value = ", ".join(value)
+        else:
+            formatted_value = str(value)
+
+        lines.append(f"{key}: {formatted_value}")
+
+    return "\n".join(lines)
+
+
 def build_follow_up_prompt(intake: PathfinderIntake) -> str:
     return f"""
 You are an expert career coach conducting a discovery conversation.
@@ -49,32 +63,14 @@ If the resume provides enough detail about current or recent experience, do not 
 
 User responses:
 
+User answers:
+{format_answers(intake.answers)}
+
 Resume text, if provided:
 {intake.resumeText}
 
-Current role:
-{intake.currentRole}
-
-Natural strengths:
-{intake.naturalStrengths}
-
-Preferred work style:
-{intake.workPreference}
-
-Draining work:
-{intake.drainsEnergy}
-
-Energizing work:
-{intake.energizingWork}
-
-Work to avoid:
-{intake.workToAvoid}
-
-Education:
-{intake.education}
-
-Constraints:
-{intake.constraints}
+Follow-up clarification responses:
+{intake.followUpResponses}
 """
 
 
@@ -84,7 +80,7 @@ You are an expert career transition strategist.
 
 Your task is to create a practical Career Pathfinder Report for someone who may not know what they want to do next.
 
-Use the user's answers to infer:
+Use the user's answers and resume, if provided, to infer:
 - transferable skills
 - energizing work patterns
 - draining work patterns
@@ -100,13 +96,6 @@ Do not assume the user wants to go back to school unless necessary.
 Prefer realistic bridge roles over dramatic career pivots.
 Do not present recommendations as certain conclusions.
 
-If the user's answers are vague, limited, or incomplete:
-- avoid highly specific career paths unless clearly supported
-- identify what information is missing
-- let the user know that their career coach will walk them through each step
-
-Prefer realistic categories and bridge roles over overly specific titles.
-
 If resume text is provided:
 - use it to infer current/recent experience
 - pull out transferable skills from past roles
@@ -114,17 +103,14 @@ If resume text is provided:
 - do not ask the user to repeat information that is already clear from the resume
 - still prioritize the user's stated energizers, drains, and preferences over resume history alone
 
-User intake:
-Resume text, if provided: {intake.resumeText}
-Current role / industry: {intake.currentRole}
-Natural strengths: {intake.naturalStrengths}
-Preferred work style: {intake.workPreference}
-Draining tasks / environments: {intake.drainsEnergy}
-Energizing work: {intake.energizingWork}
-Work to avoid: {intake.workToAvoid}
-Education / certifications: {intake.education}
-Constraints: {intake.constraints}
-Follow-up clarification responses: {intake.followUpResponses}
+User answers:
+{format_answers(intake.answers)}
+
+Resume text, if provided:
+{intake.resumeText}
+
+Follow-up clarification responses:
+{intake.followUpResponses}
 
 Return 2 to 5 career recommendations. If the input is thin, keep them broad and exploratory.
 """
@@ -132,29 +118,11 @@ Return 2 to 5 career recommendations. If the input is thin, keep them broad and 
 
 def build_candidate_summary(intake: PathfinderIntake) -> str:
     return f"""
-Current role / industry:
-{intake.currentRole}
+User answers:
+{format_answers(intake.answers)}
 
-Natural strengths:
-{intake.naturalStrengths}
-
-Preferred work style:
-{intake.workPreference}
-
-Draining work:
-{intake.drainsEnergy}
-
-Energizing work:
-{intake.energizingWork}
-
-Work to avoid:
-{intake.workToAvoid}
-
-Education / certifications:
-{intake.education}
-
-Constraints:
-{intake.constraints}
+Resume text, if provided:
+{intake.resumeText}
 
 Follow-up responses:
 {intake.followUpResponses}

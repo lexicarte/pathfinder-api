@@ -1,26 +1,20 @@
-from typing import List
+from typing import Any, Dict, Optional, List
 from pydantic import BaseModel
 
 
 class ClientInfo(BaseModel):
-    firstName: str
-    lastName: str
-    email: str
-    phone: str
+    firstName: str = ""
+    lastName: str = ""
+    email: str = ""
+    phone: str = ""
 
 
 class PathfinderIntake(BaseModel):
-    clientInfo: ClientInfo
-    currentRole: str
-    naturalStrengths: str
-    workPreference: str
-    drainsEnergy: str
-    energizingWork: str
-    workToAvoid: str
-    education: str
-    constraints: str
-    followUpResponses: str = ""
     resumeText: str = ""
+    clientInfo: Optional[ClientInfo] = None
+    answers: Dict[str, Any]
+    followUpResponses: str = ""
+    desiredLocation: str = ""
 
 
 class JobSearchRequest(BaseModel):
