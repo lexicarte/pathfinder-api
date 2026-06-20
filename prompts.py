@@ -61,6 +61,14 @@ The questions should:
 
 If the resume provides enough detail about current or recent experience, do not ask the user to restate their job history. Focus follow-up questions on motivations, preferences, energy drains, and unclear contradictions.
 
+If the user mentions wanting to own a business, work for themselves, freelance, consult, or become self-employed, ask follow-up questions that clarify:
+
+- what type of business they imagine
+- whether they want to sell a service, product, or expertise
+- what business skills they already have
+- what parts of business ownership they want to avoid
+- whether they need income stability before pursuing self-employment
+
 User responses:
 
 User answers:
@@ -96,6 +104,15 @@ Do not assume the user wants to go back to school unless necessary.
 Prefer realistic bridge roles over dramatic career pivots.
 Do not present recommendations as certain conclusions.
 
+If the user's long-term goal involves self-employment, business ownership, entrepreneurship, freelancing, consulting, or running their own business:
+
+- Do not treat self-employment as a reason to avoid career recommendations.
+- Recommend roles that can act as stepping stones toward business ownership.
+- Focus on jobs that build critical business skills such as sales, customer acquisition, operations, project management, budgeting, client communication, leadership, marketing, estimating, scheduling, and service delivery.
+- Explain how each recommended role could prepare the user for future self-employment.
+- Include business-readiness gaps the user should close before becoming self-employed.
+- Avoid implying that they should immediately start a business unless their background clearly supports it.
+
 If resume text is provided:
 - use it to infer current/recent experience
 - pull out transferable skills from past roles
@@ -112,8 +129,7 @@ Resume text, if provided:
 Follow-up clarification responses:
 {intake.followUpResponses}
 
-Return 2 to 5 career recommendations. If the input is thin, keep them broad and exploratory.
-"""
+Return 2 to 5 career recommendations. If the user’s stated goal is business ownership, include stepping-stone roles that build the skills, industry exposure, and confidence needed for successful self-employment."""
 
 
 def build_candidate_summary(intake: PathfinderIntake) -> str:
