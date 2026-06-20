@@ -185,6 +185,13 @@ Rules:
 - If a job is unrelated, score it 1 to 3.
 - If a job requires credentials the user does not appear to have, score it low.
 - Keep fitReason under 30 words.
+
+If the user's long-term goal involves self-employment, entrepreneurship, consulting, freelancing, or business ownership:
+
+- Score jobs higher when they build business-owner skills.
+- Valuable stepping-stone skills include sales, customer acquisition, operations, budgeting, estimating, project management, scheduling, client communication, leadership, marketing, and service delivery.
+- Do not penalize a job just because it is not the user's final long-term goal.
+- Penalize jobs that are dead-end, overly narrow, or unlikely to build useful business experience.
 """
 
 
