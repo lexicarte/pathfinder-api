@@ -51,3 +51,30 @@ class ParsedResume(BaseModel):
     phone: str = ""
     educationLevel: str = ""
     location: str = ""
+
+
+class PdfCareerRecommendation(BaseModel):
+    title: str
+    fitSummary: str
+    whyItFits: List[str]
+    bridgeRoles: List[str]
+    skillsToBuild: List[str]
+    possibleJobTitles: List[str]
+    transitionDifficulty: str
+
+
+class PdfReport(BaseModel):
+    clientSnapshot: str
+    strengthsAndPatterns: List[str]
+    transferableSkills: List[str]
+    careerRecommendations: List[PdfCareerRecommendation]
+    resumePositioningKeywords: List[str]
+    watchOuts: List[str]
+    followUpQuestions: List[str]
+    recommendedNextSteps: List[str]
+
+
+class PdfRequest(BaseModel):
+    clientInfo: Optional[ClientInfo] = None
+    report: PdfReport
+    jobs: Optional[JobSearchResponse] = None

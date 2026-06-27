@@ -5,6 +5,15 @@ from models import (JobSearchRequest, PathfinderIntake, ResumeParseRequest, Pars
 from openai_service import check_follow_ups, generate_report, parse_resume
 from jobs_service import search_jobs
 
+from fastapi.responses import Response
+from models import PdfRequest
+from pdf_service import build_pdf
+
+from fastapi import UploadFile, File
+from docx import Document
+from pypdf import PdfReader
+from io import BytesIO
+
 app = FastAPI()
 
 app.add_middleware(
@@ -41,3 +50,47 @@ def parse_resume_endpoint(
     return parse_resume(
         request.resumeText,
     )
+
+
+@app.post("/generate-pdf")
+def generate_pdf_endpoint(request: PdfRequest):
+    pdf_bytes = build_pdf(request)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": "attachment; filename=career_pathfinder_report.pdf"
+        },
+    )
+
+
+@app.post("/extract-resume-text")
+def extract_resume_text(file: UploadFile = File(...)):
+    extension = file.filename.lower().split(".")[-1]
+
+    data = file.file.read()
+
+    if extension == "txt":
+        text = data.decode("utf-8", errors="ignore")
+
+    elif extension == "pdf":
+        reader = PdfReader(BytesIO(data))
+        text = "\n".join(
+            page.extract_text() or ""
+            for page in reader.pages
+        )
+
+    elif extension == "docx":
+        document = Document(BytesIO(data))
+        text = "\n".join(
+            paragraph.text
+            for paragraph in document.paragraphs
+        )
+
+    else:
+        raise ValueError("Unsupported file type.")
+
+    return {
+        "resumeText": text,
+    }
