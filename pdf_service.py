@@ -1,109 +1,199 @@
 from io import BytesIO
 
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.colors import HexColor
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
     Spacer,
-    PageBreak,
 )
 
 from models import PdfRequest
 
+BRAND_GREEN = "#7F947B"
+DARK_TEXT = "#2F3430"
+MUTED_TEXT = "#6B716A"
+REPORT_TITLE = "Personal Pathfinder"
+REPORT_SUBTITLE = "TRANSITIONAL CAREERS"
 
-def add_heading(story, text, styles):
-    story.append(Paragraph(text, styles["Heading1"]))
-    story.append(Spacer(1, 8))
+
+def build_styles():
+    base = getSampleStyleSheet()
+
+    return {
+        "title": ParagraphStyle(
+            "ReportTitle",
+            parent=base["Title"],
+            fontName="Helvetica-Bold",
+            fontSize=30,
+            leading=34,
+            textColor=HexColor(DARK_TEXT),
+            spaceAfter=4,
+        ),
+        "subtitle": ParagraphStyle(
+            "ReportSubtitle",
+            parent=base["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=10,
+            leading=14,
+            textColor=HexColor(BRAND_GREEN),
+            spaceAfter=16,
+        ),
+        "section": ParagraphStyle(
+            "SectionHeading",
+            parent=base["Heading2"],
+            fontName="Helvetica-Bold",
+            fontSize=11,
+            leading=14,
+            textColor=HexColor(BRAND_GREEN),
+            spaceBefore=20,
+            spaceAfter=10,
+        ),
+        "card_title": ParagraphStyle(
+            "CardTitle",
+            parent=base["Heading2"],
+            fontName="Helvetica-Bold",
+            fontSize=16,
+            leading=20,
+            textColor=HexColor(DARK_TEXT),
+            spaceBefore=10,
+            spaceAfter=8,
+        ),
+        "subheading": ParagraphStyle(
+            "Subheading",
+            parent=base["Heading3"],
+            fontName="Helvetica-Bold",
+            fontSize=11,
+            leading=14,
+            textColor=HexColor(DARK_TEXT),
+            spaceBefore=8,
+            spaceAfter=4,
+        ),
+        "body": ParagraphStyle(
+            "Body",
+            parent=base["BodyText"],
+            fontName="Helvetica",
+            fontSize=10.5,
+            leading=16,
+            textColor=HexColor(DARK_TEXT),
+            spaceAfter=8,
+        ),
+        "muted": ParagraphStyle(
+            "Muted",
+            parent=base["BodyText"],
+            fontName="Helvetica",
+            fontSize=10,
+            leading=14,
+            textColor=HexColor(MUTED_TEXT),
+            spaceAfter=8,
+        ),
+    }
 
 
-def add_paragraph(story, text, styles):
+def add_header(story, request: PdfRequest, styles):
+    story.append(Paragraph(REPORT_TITLE, styles["title"]))
+    story.append(Paragraph(REPORT_SUBTITLE, styles["subtitle"]))
+
+    if request.clientInfo:
+        name = f"{request.clientInfo.firstName} {request.clientInfo.lastName}".strip()
+
+        if name:
+            story.append(Paragraph(f"Curated for {name}", styles["muted"]))
+
+        contact = " | ".join(
+            item
+            for item in [
+                request.clientInfo.email,
+                request.clientInfo.phone,
+            ]
+            if item
+        )
+
+        if contact:
+            story.append(Paragraph(contact, styles["muted"]))
+
+    story.append(Spacer(1, 18))
+
+
+def add_section(story, title: str, styles):
+    story.append(Paragraph(title.upper(), styles["section"]))
+
+
+def add_paragraph(story, text: str, styles):
     if text:
-        story.append(Paragraph(text, styles["BodyText"]))
-        story.append(Spacer(1, 10))
+        story.append(Paragraph(text, styles["body"]))
 
 
-def add_bullets(story, items, styles):
+def add_bullets(story, items: list[str], styles):
     for item in items:
-        story.append(Paragraph(f"• {item}", styles["BodyText"]))
-        story.append(Spacer(1, 5))
-
-    story.append(Spacer(1, 8))
+        story.append(Paragraph(f"&#8226;&nbsp;&nbsp;{item}", styles["body"]))
 
 
 def build_pdf(request: PdfRequest) -> bytes:
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer)
-    styles = getSampleStyleSheet()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        rightMargin=54,
+        leftMargin=54,
+        topMargin=54,
+        bottomMargin=54,
+    )
+
+    styles = build_styles()
     story = []
 
-    story.append(Paragraph("Career Pathfinder Report", styles["Title"]))
-    story.append(Spacer(1, 14))
+    add_header(story, request, styles)
 
-    if request.clientInfo:
-        name = f"{request.clientInfo.firstName} {request.clientInfo.lastName}".strip()
-        if name:
-            story.append(Paragraph(name, styles["Heading2"]))
-
-        if request.clientInfo.email:
-            story.append(Paragraph(request.clientInfo.email, styles["BodyText"]))
-
-        if request.clientInfo.phone:
-            story.append(Paragraph(request.clientInfo.phone, styles["BodyText"]))
-
-        story.append(Spacer(1, 16))
-
-    add_heading(story, "Client Snapshot", styles)
+    add_section(story, "Client Snapshot", styles)
     add_paragraph(story, request.report.clientSnapshot, styles)
 
-    add_heading(story, "Strengths & Patterns", styles)
+    add_section(story, "Strengths & Patterns", styles)
     add_bullets(story, request.report.strengthsAndPatterns, styles)
 
-    add_heading(story, "Transferable Skills", styles)
+    add_section(story, "Transferable Skills", styles)
     add_bullets(story, request.report.transferableSkills, styles)
 
-    add_heading(story, "Career Recommendations", styles)
+    add_section(story, "Career Recommendations", styles)
 
     for index, career in enumerate(request.report.careerRecommendations, start=1):
         story.append(
             Paragraph(
                 f"{index}. {career.title}",
-                styles["Heading2"],
+                styles["card_title"],
             )
         )
-        story.append(Spacer(1, 6))
 
         add_paragraph(story, career.fitSummary, styles)
 
-        story.append(Paragraph("Why It Fits", styles["Heading3"]))
+        story.append(Paragraph("Why It Fits", styles["subheading"]))
         add_bullets(story, career.whyItFits, styles)
 
-        story.append(Paragraph("Bridge Roles", styles["Heading3"]))
+        story.append(Paragraph("Bridge Roles", styles["subheading"]))
         add_bullets(story, career.bridgeRoles, styles)
 
-        story.append(Paragraph("Skills To Build", styles["Heading3"]))
+        story.append(Paragraph("Skills To Build", styles["subheading"]))
         add_bullets(story, career.skillsToBuild, styles)
 
-        story.append(Paragraph("Possible Job Titles", styles["Heading3"]))
+        story.append(Paragraph("Possible Job Titles", styles["subheading"]))
         add_bullets(story, career.possibleJobTitles, styles)
 
-        story.append(
-            Paragraph(
-                f"Transition Difficulty: {career.transitionDifficulty}",
-                styles["BodyText"],
-            )
+        add_paragraph(
+            story,
+            f"<b>Transition Difficulty:</b> {career.transitionDifficulty}",
+            styles,
         )
-        story.append(Spacer(1, 16))
 
-    add_heading(story, "Resume Positioning Keywords", styles)
+        story.append(Spacer(1, 10))
+
+    add_section(story, "Resume Positioning Keywords", styles)
     add_bullets(story, request.report.resumePositioningKeywords, styles)
 
-    add_heading(story, "Watch Outs", styles)
+    add_section(story, "Watch Outs", styles)
     add_bullets(story, request.report.watchOuts, styles)
 
-    add_heading(story, "Recommended Next Steps", styles)
+    add_section(story, "Recommended Next Steps", styles)
     add_bullets(story, request.report.recommendedNextSteps, styles)
-
-    story.append(PageBreak())
 
     doc.build(story)
 
